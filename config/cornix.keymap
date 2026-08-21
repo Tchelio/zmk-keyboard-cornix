@@ -12,15 +12,27 @@
 // 확인된 것만 이식함:
 //   - Layer 0(Base): 실제 RMK 그대로. 유일하게 스톡과 다른 지점은 우측 하단열의 Up(원래 / 자리) — 의도적 커스텀.
 //   - Layer 1: 상단열(Esc+숫자기호)만 확인됨, 나머지 행은 실기기에서 비어있어서 &trans로 둠.
-//   - Layer 2 이상: 미확인(BT 프로필 선택 레이어로 추정되나 정확한 위치 불확실) — 아직 포함 안 함, 필요해지면 추가.
-//   - 키2(슬래시, 홀드시 우쉬프트)는 아직 미구현 상태라 이식 대상 없음 — 나중에 별도 설계.
+//   - Layer 2/3/4: BT 프로필 선택(공장 기본값, 사용자 확인함) — 왼손 상단열에 BT_SEL 0/1/2, 나머지 &trans.
+//   - 키1(화살표/물음표): mod-morph로 구현 — 아래 behaviors 참고.
+//   - 키2(슬래시, 홀드시 우쉬프트): 물리 키 위치 미확정이라 아직 미구현.
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/modifiers.h>
 #include <dt-bindings/zmk/pointing.h>
 
 / {
+    behaviors {
+        // 키1: 탭=Up(화살표), 좌쉬프트+탭='?', 우쉬프트+탭=조건 불일치라 그냥 Shift+Up 통과(드래그/선택)
+        key1_arrow_qmark: key1_arrow_qmark {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp UP>, <&kp QUESTION_MARK>;
+            mods = <(MOD_LSFT)>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
@@ -37,7 +49,7 @@
             bindings = <
 &kp TAB    &kp Q     &kp W    &kp E    &kp R    &kp T                        &kp Y      &kp U    &kp I      &kp O    &kp P     &kp BSPC
 &kp CAPS   &kp A     &kp S    &kp D    &kp F    &kp G                        &kp H      &kp J    &kp K      &kp L    &kp BSLH  &kp RET
-&kp LSHFT  &kp Z     &kp X    &kp C    &kp V    &kp B      &kp C_MUTE &mkp MB3  &kp N   &kp M    &kp COMMA  &kp DOT  &kp UP    &kp RSHFT
+&kp LSHFT  &kp Z     &kp X    &kp C    &kp V    &kp B      &kp C_MUTE &mkp MB3  &kp N   &kp M    &kp COMMA  &kp DOT  &key1_arrow_qmark  &kp RSHFT
 &kp LCTRL  &kp LGUI  &kp LALT &mo 1    &mo 3    &kp SPACE               &kp SPACE  &mo 4  &mo 2     &kp LEFT  &kp DOWN  &kp RIGHT
             >;
 
@@ -57,6 +69,36 @@
             >;
 
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
+        };
+
+        bt_layer_2 {
+            display-name = "BT2";
+            bindings = <
+&bt BT_SEL 0  &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        bt_layer_3 {
+            display-name = "BT3";
+            bindings = <
+&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 1  &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        bt_layer_4 {
+            display-name = "BT4";
+            bindings = <
+&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 2  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+            >;
         };
     };
 };
