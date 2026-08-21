@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: MIT
  */
-
 // NOTE(2026-08-22): 이전에 있던 urob 스타일 홈로우모드 커스텀 설정은 폐기하고, 실제 RMK로 쓰던
 // 키보드를 그대로 이식한 상태로 새로 시작함. 원래 커스텀 파일은 backup/cornix.keymap.urob-homerowmods-20260822에,
 // ZMK 저장소 자체 예시 기본값은 backup/cornix.keymap.zmk-community-stock-example에 보존해둠(참고용).
@@ -17,20 +16,22 @@
 //   - 키2(슬래시/우쉬프트): 우하단 팜 Right(화살표) 바로 위, 원래 RShift였던 자리를 mod-tap으로 재활용 —
 //     탭=`/`, 홀드=RSFT. ZMK 내장 &mt 그대로 사용(커스텀 behavior 불필요).
 
+#include <dt-bindings/zmk/modifiers.h>
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
-#include <dt-bindings/zmk/modifiers.h>
 #include <dt-bindings/zmk/pointing.h>
 
 / {
     behaviors {
         // 키1: 탭=Up(화살표), 우쉬프트(키2 홀드)+탭='?', 좌쉬프트+탭=조건 불일치라 그냥 Shift+Up 통과(드래그/선택)
         // NOTE(2026-08-22 정정): 처음엔 좌쉬프트를 '?' 트리거로 넣었으나 실사용해보니 반대였음 — 우쉬프트로 수정.
+
         key1_arrow_qmark: key1_arrow_qmark {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
             bindings = <&kp UP>, <&kp QUESTION>;
+
             mods = <(MOD_RSFT)>;
         };
     };
@@ -50,10 +51,10 @@
             // (**) 키2 = mod-tap(&mt), 탭=`/`, 홀드=RShift(원래 RShift 단독키였던 자리)
 
             bindings = <
-&kp TAB    &kp Q     &kp W    &kp E    &kp R    &kp T                        &kp Y      &kp U    &kp I      &kp O    &kp P     &kp BSPC
-&kp CAPS   &kp A     &kp S    &kp D    &kp F    &kp G                        &kp H      &kp J    &kp K      &kp L    &kp BSLH  &kp RET
-&kp LSHFT  &kp Z     &kp X    &kp C    &kp V    &kp B      &kp C_MUTE &mkp MB3  &kp N   &kp M    &kp COMMA  &kp DOT  &key1_arrow_qmark  &mt RSHFT FSLH
-&kp LCTRL  &kp LGUI  &kp LALT &mo 1    &mo 3    &kp SPACE               &kp SPACE  &mo 4  &mo 2     &kp LEFT  &kp DOWN  &kp RIGHT
+&kp TAB    &kp Q     &kp W     &kp E  &kp R  &kp T                            &kp Y      &kp U  &kp I      &kp O     &kp P              &kp BSPC
+&kp CAPS   &kp A     &kp S     &kp D  &kp F  &kp G                            &kp H      &kp J  &kp K      &kp L     &kp BSLH           &kp RET
+&kp LSHFT  &kp Z     &kp X     &kp C  &kp V  &kp B      &kp C_MUTE  &mkp MB3  &kp N      &kp M  &kp COMMA  &kp DOT   &key1_arrow_qmark  &mt RSHFT FSLH
+&kp LCTRL  &kp LGUI  &kp LALT  &mo 1  &mo 3  &kp SPACE                        &kp SPACE  &mo 4  &mo 2      &kp LEFT  &kp DOWN           &kp RIGHT
             >;
 
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
@@ -68,10 +69,10 @@
             // 정상 작동하니 별도 처리 불필요(레이어랑 쉬프트는 서로 안 막음).
 
             bindings = <
-&kp ESC   &kp N1    &kp N2   &kp N3    &kp N4    &kp N5                       &kp N6     &kp N7    &kp N8     &kp N9    &kp N0    &kp DEL
-&trans    &trans    &trans   &trans    &trans    &trans                       &trans     &trans    &trans     &trans    &trans    &trans
-&trans    &trans    &trans   &trans    &trans    &trans     &trans    &trans  &trans     &trans    &trans     &trans    &trans    &trans
-&trans    &trans    &trans   &trans    &trans    &trans                       &trans     &trans    &trans     &trans    &trans    &trans
+&kp ESC  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5                  &kp N6  &kp N7  &kp N8  &kp N9  &kp N0  &kp DEL
+&trans   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans   &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
 
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
@@ -84,30 +85,30 @@
         bt_layer_2 {
             display-name = "BT2";
             bindings = <
-&bt BT_SEL 0  &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
-&bt BT_SEL 1  &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
-&bt BT_SEL 2  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 0  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 1  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 2  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
 
         bt_layer_3 {
             display-name = "BT3";
             bindings = <
-&bt BT_SEL 0  &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
-&bt BT_SEL 1  &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
-&bt BT_SEL 2  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&trans        &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 0  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 1  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&bt BT_SEL 2  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
 
         bt_layer_4 {
             display-name = "BT4";
             bindings = <
-&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
-&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
-&trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans        &trans  &trans  &trans  &trans  &trans                &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
     };
