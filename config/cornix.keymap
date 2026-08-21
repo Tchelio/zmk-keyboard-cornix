@@ -29,7 +29,7 @@
         key1_arrow_qmark: key1_arrow_qmark {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp UP>, <&kp QUESTION_MARK>;
+            bindings = <&kp UP>, <&kp QUESTION>;
             mods = <(MOD_LSFT)>;
         };
     };
