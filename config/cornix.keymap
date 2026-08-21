@@ -14,7 +14,8 @@
 //   - Layer 1: 상단열(Esc+숫자기호)만 확인됨, 나머지 행은 실기기에서 비어있어서 &trans로 둠.
 //   - Layer 2/3/4: BT 프로필 선택(공장 기본값, 사용자 확인함) — 왼손 상단열에 BT_SEL 0/1/2, 나머지 &trans.
 //   - 키1(화살표/물음표): mod-morph로 구현 — 아래 behaviors 참고.
-//   - 키2(슬래시, 홀드시 우쉬프트): 물리 키 위치 미확정이라 아직 미구현.
+//   - 키2(슬래시/우쉬프트): 우하단 팜 Right(화살표) 바로 위, 원래 RShift였던 자리를 mod-tap으로 재활용 —
+//     탭=`/`, 홀드=RSFT. ZMK 내장 &mt 그대로 사용(커스텀 behavior 불필요).
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
@@ -42,14 +43,15 @@
             // ------------------------------------------------------------------------------------------------
             // | Tab      | Q | W | X | E | T |               | Y | U | I  | O    | P     | Bkspc |
             // | CapsLock | A | S | D | F | G |               | H | J | K  | L    | \|\   | Enter |
-            // | LShift   | Z | X | C | V | B | Mute | Mouse3 | N | M | ,  | .    | Up(*) | RShift|
+            // | LShift   | Z | X | C | V | B | Mute | Mouse3 | N | M | ,  | .    | 키1(*) | 키2(**)|
             // | LCtrl | LGui | LAlt | MO(1) | MO(3) | Space | | Space | MO(4) | MO(2) | Left | Down | Right |
-            // (*) 원래 `/` 자리 — 의도적으로 위쪽 화살표로 바꿔서 쓰는 중 (키1 설계, 키2는 별도 예정)
+            // (*)  키1 = mod-morph, 탭=Up 화살표(원래 `/` 자리), 좌쉬프트+탭=`?`
+            // (**) 키2 = mod-tap(&mt), 탭=`/`, 홀드=RShift(원래 RShift 단독키였던 자리)
 
             bindings = <
 &kp TAB    &kp Q     &kp W    &kp E    &kp R    &kp T                        &kp Y      &kp U    &kp I      &kp O    &kp P     &kp BSPC
 &kp CAPS   &kp A     &kp S    &kp D    &kp F    &kp G                        &kp H      &kp J    &kp K      &kp L    &kp BSLH  &kp RET
-&kp LSHFT  &kp Z     &kp X    &kp C    &kp V    &kp B      &kp C_MUTE &mkp MB3  &kp N   &kp M    &kp COMMA  &kp DOT  &key1_arrow_qmark  &kp RSHFT
+&kp LSHFT  &kp Z     &kp X    &kp C    &kp V    &kp B      &kp C_MUTE &mkp MB3  &kp N   &kp M    &kp COMMA  &kp DOT  &key1_arrow_qmark  &mt RSHFT FSLH
 &kp LCTRL  &kp LGUI  &kp LALT &mo 1    &mo 3    &kp SPACE               &kp SPACE  &mo 4  &mo 2     &kp LEFT  &kp DOWN  &kp RIGHT
             >;
 
