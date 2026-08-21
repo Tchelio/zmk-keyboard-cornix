@@ -4,10 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-// NOTE(2026-08-22): 원래 이 자리에 있던 #define 매크로(KEYS_L/KEYS_R/KEYS_T, HM_TAPPING_TERM 등)를
-// 실제 숫자로 풀어썼습니다. Keymap Editor(nickcoutsos)가 C 전처리기 매크로를 파싱하지 못해서
-// tapping-term-ms / hold-trigger-key-positions 필드가 빈 값으로 보이는 문제 때문입니다.
-// 원래 값이 뭐였는지는 아래 참고:
+// NOTE(2026-08-22): 원래 여기 있던 #define 매크로(KEYS_L/KEYS_R/KEYS_T, HM_TAPPING_TERM 등) 리터럴로 풀어씀.
+// Keymap Editor(nickcoutsos)가 C 전처리기 매크로 파싱 못 함 — tapping-term-ms / hold-trigger-key-positions
+// 필드가 빈 값으로 뜨는 원인. 원래 값:
 //
 //   HM_TAPPING_TERM      = 250  (일반 homerow mods tapping term)
 //   HM_TAPPING_TERM_FAST = 200  (쉬프트 전용 빠른 tapping term)
@@ -19,9 +18,9 @@
 //     KEYS_T(엄지 안쪽 4개)         = 42 43 44 45
 //
 // 참고: BASE/WIN/LOWER/RAISE/ADJUST/NAVI/NUM/DEBUG, HM_TAPPING_REPEAT, THUMBS,
-// ZMK_POINTING_DEFAULT_SCRL_VAL 매크로는 실제로 어디서도 참조되지 않는 죽은 정의라 함께 제거했습니다
-// (특히 ZMK_POINTING_DEFAULT_SCRL_VAL은 애초에 .keymap이 아니라 .conf에 CONFIG_ 형태로 있어야
-// 효과가 있는 값이라, 여기 있었어도 원래 적용되고 있지 않았습니다).
+// ZMK_POINTING_DEFAULT_SCRL_VAL 매크로는 실제 어디서도 안 쓰이는 죽은 정의라 같이 제거함
+// (ZMK_POINTING_DEFAULT_SCRL_VAL은 애초에 .keymap 아니라 .conf에 CONFIG_ 형태로 있어야 적용되는 값 —
+// 여기 있었어도 원래 무효였음).
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
@@ -183,7 +182,7 @@
 &kp TAB           &kp Q          &kp W         &kp E         &kp R                &kp T                      &kp Y      &kp U                &kp I            &kp O         &kp P             &kp BSLH
 &kp ESC           &hm_l LCTRL A  &hm_l LALT S  &hm_l LGUI D  &hm_shift_l LSHFT F  &kp G                      &kp H      &hm_shift_r RSHFT J  &hm_r RGUI K     &hm_r RALT L  &hm_r RCTRL SEMI  &kp SQT
 &mo 4             &hm_l LGUI Z   &kp X         &kp C         &kp V                &kp B        &none  &none  &kp N      &kp M                &kp COMMA        &kp DOT       &kp FSLH          &kp BACKSPACE
-&kp LEFT_CONTROL  &kp LWIN       &none         &lt 6 ESCAPE  &mo 2                &lt 5 SPACE                &kp ENTER  &mo 3                &lt 2 BACKSPACE  &none         &none             &none
+&none             &none          &none         &lt 6 ESCAPE  &mo 2                &lt 5 SPACE                &kp ENTER  &mo 3                &lt 2 BACKSPACE  &none         &none             &none
             >;
 
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
