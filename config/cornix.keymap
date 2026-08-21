@@ -57,7 +57,9 @@
 &kp LCTRL  &kp LGUI  &kp LALT  &mo 1  &mo 3  &kp SPACE                        &kp SPACE  &mo 4  &mo 2      &kp LEFT  &kp DOWN           &kp RIGHT
             >;
 
-            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
+            sensor-bindings =
+                <&inc_dec_kp C_VOL_UP C_VOL_DN>,
+                <&inc_dec_kp LG(K_SCROLL_UP) K_SCROLL_DOWN>;
         };
 
         num_layer {
