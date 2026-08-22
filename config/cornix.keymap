@@ -38,10 +38,15 @@
         // NOTE(2026-08-22): &msc는 sensor-bindings(인코더)에 직접 못 씀 — #sensor-binding-cells가
         // 없어서 "lacks #sensor-binding-cells" devicetree 에러로 빌드가 깨짐(실사용 확인). 공식 문서의
         // zmk,behavior-sensor-rotate 패턴으로 감싸야 함.
+        // NOTE(2026-08-22 추가): 빌드는 됐는데 스크롤이 전혀 안 먹는 문제 발생 — 실제 소스
+        // (behavior_input_two_axis.c, behavior_sensor_rotate_common.c) 확인 결과, sensor-rotate
+        // 기본 tap_ms=5가 msc의 trigger_period_ms=16보다 짧아서 첫 HID 리포트가 예약되기 전에
+        // release로 취소되어 아예 안 나가는 게 원인. tap_ms를 16ms보다 길게 줘서 해결.
         scroll_encoder: scroll_encoder {
             compatible = "zmk,behavior-sensor-rotate";
             #sensor-binding-cells = <0>;
             bindings = <&msc SCRL_UP>, <&msc SCRL_DOWN>;
+            tap-ms = <30>;
         };
     };
 
