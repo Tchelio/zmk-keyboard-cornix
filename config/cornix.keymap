@@ -50,7 +50,10 @@
         scroll_encoder: scroll_encoder {
             compatible = "zmk,behavior-sensor-rotate";
             #sensor-binding-cells = <0>;
-            bindings = <&msc MOVE_Y(-100)>, <&msc MOVE_Y(100)>;
+            // NOTE(2026-08-22 감도 조정): 100→70. tick당 이동량 70*16/1000=1.12로, "정수 캐스팅에서
+            // 0으로 버려지는" 최소선(62.5) 위 여유 두면서 세기는 낮춤. 더 낮추고 싶으면 62 밑으로는
+            // 내려가지 말 것(다시 안 먹는 문제 재발).
+            bindings = <&msc MOVE_Y(-70)>, <&msc MOVE_Y(70)>;
             tap-ms = <40>;
         };
     };
