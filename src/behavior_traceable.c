@@ -2,8 +2,7 @@
  * Layer-change marker: listens for ZMK's own zmk_layer_state_changed event
  * (raised by zmk_keymap_layer_activate/deactivate inside keymap.c for every
  * layer-referencing behavior - &mo, &lt, &tog, &to, &sl, all of them) and
- * emits an unused F-key (F20 + layer number) as an invisible marker whenever
- * a layer is activated.
+ * emits an unused F-key as an invisible marker whenever a layer is activated.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -27,27 +26,42 @@
  * volunteer the information over the channel the keyboard always has, the
  * keystrokes it is already sending.
  *
- * F21-F24 have no default binding in any mainstream OS/app, so the marker
- * produces no visible effect during normal typing.
- *
- * NOTE(2026-08-25): marker is now held for as long as the layer is active
- * (down on activate, up on deactivate) instead of firing a down+up pulse at
+ * NOTE(2026-08-25): marker is held for as long as the layer is active (down
+ * on activate, up on deactivate) instead of firing a down+up pulse at
  * activation - releasing the physical layer key normally releases the
- * marker too. Also shifted the mapping from F20-F23 to F21-F24 so layer 1
- * doesn't map to a key that reads like "zero".
+ * marker too.
  *
- * NOTE(2026-08-25 #2): shifted again, F21-F24 -> F17/F18/F19/F13. Verified
- * against real macOS source (Chromium's keycode_conversion_mac.mm) that
- * macOS has no virtual keycode at all for F21-F24 - CGEventTap-based tools
- * (the overlay app included) see them all collapse to one indistinguishable
- * code. F1-F20 all have real virtual keycodes and ARE distinguishable, but
- * F14/F15 default to brightness down/up and F20 acts as terminal Up-Arrow
- * (shell history recall) on the dev machine - both confirmed by hitting them
- * during testing. F13/F17/F18/F19 tested clean. Originally worked around via
- * a Karabiner-Elements remap (F21->F17 etc.) sitting in front of CGEventTap,
- * but emitting the already-safe usage directly removes that dependency
- * entirely - the overlay app needs nothing but this firmware to work now.
+ * NOTE(2026-08-25 #2): marker usage went through three rounds before landing
+ * on F17/F18/F19/F13 -
+ *   - F21-F24 first: no official macOS virtual keycode at all (confirmed
+ *     against Chromium's keycode_conversion_mac.mm) - CGEventTap-based tools
+ *     (the overlay app included) see them all collapse to one
+ *     indistinguishable code, can't tell layers apart.
+ *   - F13-F16: real virtual keycodes, distinguishable - but F14/F15 default
+ *     to brightness down/up on macOS.
+ *   - F17-F20: also real and distinguishable - but F20 acts as terminal
+ *     Up-Arrow (shell history recall) on the dev machine.
+ *   - Final set skips both problem keys: F17/F18/F19 (clean) + F13 (already
+ *     confirmed clean in round 1). All four verified against real hardware.
+ * This was first made to work via a Karabiner-Elements remap (F21->F17 etc.)
+ * sitting in front of the overlay app's CGEventTap, but emitting the
+ * already-safe usage directly here removes that dependency entirely.
  */
+
+#include <stdint.h>
+
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+#include <zmk/event_manager.h>
+#include <zmk/events/layer_state_changed.h>
+#include <zmk/events/keycode_state_changed.h>
+
+#include <dt-bindings/zmk/hid_usage.h>
+#include <dt-bindings/zmk/hid_usage_pages.h>
+
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
 static uint16_t marker_usage_for_layer(uint8_t layer) {
     static const uint16_t usages[] = {
         HID_USAGE_KEY_KEYBOARD_F17,
