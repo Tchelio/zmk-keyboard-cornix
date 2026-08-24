@@ -1,0 +1,25 @@
+# Copyright (c) 2026
+# SPDX-License-Identifier: MIT
+
+description: |
+  Momentary layer on press/release, identical to the stock &mo, except it
+  also emits an unused F-key (F20 + layer number) as an invisible marker when
+  pressed, so a host application can tell which layer was just activated.
+
+  ZMK Studio's RPC exposes only core/behaviors/keymap subsystems and has no
+  key-event or layer-state notification at all, so a desktop overlay has no
+  other way to know which layer is currently active. This behavior makes the
+  keyboard volunteer that information over the one channel it always has:
+  the keystrokes it is already sending (same idea as scylla-zmk-config's
+  behavior_status_report.c, applied to layer activation instead of
+  connection/battery status). The marker key has no default binding in any
+  mainstream OS, so it produces no visible effect during normal typing.
+
+compatible: "zmk,behavior-traceable-mo"
+
+include: one_param.yaml
+
+properties:
+  locking:
+    type: boolean
+    description: Whether to "lock" the layer active, same as &mo's locking property.

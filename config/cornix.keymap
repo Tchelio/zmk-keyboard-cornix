@@ -60,6 +60,17 @@
 
             tap-ms = <40>;
         };
+
+        // NOTE(2026-08-25): &mo와 동일하게 동작하지만, 눌리는 순간 F20+레이어번호(미사용 F키)를
+        // 몰래 같이 내보내는 커스텀 비헤이비어. ZMK Studio RPC엔 레이어 상태를 알려주는 채널이
+        // 아예 없어서, 오버레이 앱이 "지금 몇 번 레이어인지" 알 수 있는 유일한 방법.
+        // 구현: src/behavior_traceable_mo.c (Zephyr module, zephyr/module.yml로 등록됨)
+
+        traceable_mo: traceable_mo {
+            compatible = "zmk,behavior-traceable-mo";
+            #binding-cells = <1>;
+            display-name = "Traceable MO";
+        };
     };
 
     keymap {
@@ -72,15 +83,17 @@
             // | Tab      | Q | W | X | E | T |               | Y | U | I  | O    | P     | Bkspc |
             // | CapsLock | A | S | D | F | G |               | H | J | K  | L    | \|\   | Enter |
             // | LShift   | Z | X | C | V | B | Mute | Mouse3 | N | M | ,  | .    | 키1(*) | 키2(**)|
-            // | LCtrl | LGui | LAlt | MO(1) | MO(3) | Space | | Space | MO(4) | MO(2) | Left | Down | Right |
+            // | LCtrl | LGui | LAlt | trMO(1) | trMO(1) | Space | | Space | trMO(4) | trMO(2) | Left | Down | Right |
             // (*)  키1 = mod-morph, 탭=Up 화살표(원래 `/` 자리), 우쉬프트(키2 홀드)+탭=`?`
             // (**) 키2 = mod-tap(&mt), 탭=`/`, 홀드=RShift(원래 RShift 단독키였던 자리)
+            // NOTE(2026-08-25 정정): 왼쪽 엄지 두 자리가 둘 다 MO(1)인 건 오타가 아니라 "어디가
+            // 편한지" 일부러 같은 레이어를 양쪽에 박아둔 A/B 테스트임(사용자 확인). trMO = &traceable_mo.
 
             bindings = <
 &kp TAB    &kp Q     &kp W     &kp E  &kp R  &kp T                            &kp Y      &kp U  &kp I      &kp O     &kp P              &kp BSPC
 &kp CAPS   &kp A     &kp S     &kp D  &kp F  &kp G                            &kp H      &kp J  &kp K      &kp L     &kp BSLH           &kp RET
 &kp LSHFT  &kp Z     &kp X     &kp C  &kp V  &kp B      &kp C_MUTE  &mkp MB3  &kp N      &kp M  &kp COMMA  &kp DOT   &key1_arrow_qmark  &mt RSHFT FSLH
-&kp LCTRL  &kp LGUI  &kp LALT  &mo 1  &mo 1  &kp SPACE                        &kp SPACE  &mo 4  &mo 2      &kp LEFT  &kp DOWN           &kp RIGHT
+&kp LCTRL  &kp LGUI  &kp LALT  &traceable_mo 1  &traceable_mo 1  &kp SPACE                        &kp SPACE  &traceable_mo 4  &traceable_mo 2      &kp LEFT  &kp DOWN           &kp RIGHT
             >;
 
             sensor-bindings =

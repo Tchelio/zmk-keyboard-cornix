@@ -1,0 +1,12 @@
+# Custom behaviors provided by this zmk-config repo, built as a Zephyr module.
+
+config ZMK_BEHAVIOR_TRACEABLE_MO
+    bool "Traceable momentary layer behavior"
+    default y
+    depends on DT_HAS_ZMK_BEHAVIOR_TRACEABLE_MO_ENABLED
+    help
+      Momentary layer behavior identical to the stock &mo, except it also
+      emits an unused F-key (F20 + layer number) as an invisible marker on
+      press. ZMK Studio's RPC exposes no layer-state notification at all, so
+      this is the only way for a host-side overlay to detect which layer was
+      just activated.
