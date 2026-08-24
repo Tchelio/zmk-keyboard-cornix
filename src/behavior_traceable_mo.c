@@ -38,6 +38,30 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
+#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_METADATA)
+
+/* &mo의 실제 소스(behavior_momentary_layer.c)와 동일한 패턴 — 이게 있어야 Studio/키맵
+ * 에디터가 param1을 "레이어 번호"로 인식해서 이름/드롭다운으로 보여줌. 이거 빠뜨리면
+ * 파라미터가 그냥 빈 값/숫자로만 보이거나 아예 안 보임(실사용 확인된 증상). */
+static const struct behavior_parameter_value_metadata param_values[] = {
+    {
+        .display_name = "Layer",
+        .type = BEHAVIOR_PARAMETER_VALUE_TYPE_LAYER_ID,
+    },
+};
+
+static const struct behavior_parameter_metadata_set param_metadata_set[] = {{
+    .param1_values = param_values,
+    .param1_values_len = ARRAY_SIZE(param_values),
+}};
+
+static const struct behavior_parameter_metadata metadata = {
+    .sets_len = ARRAY_SIZE(param_metadata_set),
+    .sets = param_metadata_set,
+};
+
+#endif
+
 struct behavior_traceable_mo_config {
     bool locking;
 };
@@ -74,6 +98,9 @@ static int traceable_mo_binding_released(struct zmk_behavior_binding *binding,
 static const struct behavior_driver_api behavior_traceable_mo_driver_api = {
     .binding_pressed = traceable_mo_binding_pressed,
     .binding_released = traceable_mo_binding_released,
+#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_METADATA)
+    .parameter_metadata = &metadata,
+#endif // IS_ENABLED(CONFIG_ZMK_BEHAVIOR_METADATA)
 };
 
 #define TMO_INST(n)                                                                       \
