@@ -27,8 +27,14 @@
  * volunteer the information over the channel the keyboard always has, the
  * keystrokes it is already sending.
  *
- * F20-F23 have no default binding in any mainstream OS/app, so the marker
+ * F21-F24 have no default binding in any mainstream OS/app, so the marker
  * produces no visible effect during normal typing.
+ *
+ * NOTE(2026-08-25): marker is now held for as long as the layer is active
+ * (down on activate, up on deactivate) instead of firing a down+up pulse at
+ * activation - releasing the physical layer key normally releases the
+ * marker too. Also shifted the mapping from F20-F23 to F21-F24 so layer 1
+ * doesn't map to a key that reads like "zero".
  */
 
 #include <zephyr/kernel.h>
@@ -43,25 +49,24 @@
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-/* layer 1 -> F20, 2 -> F21, 3 -> F22, 4 -> F23. Numbers/L2/L3/L4 = layers
- * 1-4 today, so this covers all four with room for one more (F24) if a
- * fifth ever gets added. */
+/* layer 1 -> F21, 2 -> F22, 3 -> F23, 4 -> F24. F24 is the last function key
+ * in the HID usage table, so this scheme has no headroom for a 5th layer -
+ * widen the layer cap below AND rework the mapping if that ever happens. */
 static uint16_t marker_usage_for_layer(uint8_t layer) {
-    return HID_USAGE_KEY_KEYBOARD_F20 + (layer - 1);
+    return HID_USAGE_KEY_KEYBOARD_F20 + layer;
 }
 
 static int layer_marker_listener(const zmk_event_t *eh) {
     const struct zmk_layer_state_changed *ev = as_zmk_layer_state_changed(eh);
-    if (ev == NULL || !ev->state || ev->layer == 0 || ev->layer > 4) {
+    if (ev == NULL || ev->layer == 0 || ev->layer > 4) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
     uint32_t marker = ((uint32_t)HID_USAGE_KEY << 16) | marker_usage_for_layer(ev->layer);
-    raise_zmk_keycode_state_changed_from_encoded(marker, true, ev->timestamp);
-    raise_zmk_keycode_state_changed_from_encoded(marker, false, ev->timestamp);
+    raise_zmk_keycode_state_changed_from_encoded(marker, ev->state, ev->timestamp);
 
-    LOG_DBG("layer_marker: layer %d activated, marker 0x%02x", ev->layer,
-            marker_usage_for_layer(ev->layer));
+    LOG_DBG("layer_marker: layer %d %s, marker 0x%02x", ev->layer,
+            ev->state ? "activated" : "deactivated", marker_usage_for_layer(ev->layer));
 
     return ZMK_EV_EVENT_BUBBLE;
 }
