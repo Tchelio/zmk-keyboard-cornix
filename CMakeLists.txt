@@ -1,1 +1,1 @@
-target_sources_ifdef(CONFIG_ZMK_BEHAVIOR_TRACEABLE_MO app PRIVATE src/behavior_traceable_mo.c)
+target_sources_ifdef(CONFIG_ZMK_LAYER_MARKER app PRIVATE src/behavior_traceable_mo.c)
