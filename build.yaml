@@ -30,6 +30,16 @@ include:
     # shield: cornix_indicator
     artifact-name: cornix_left_default_nosd
 
+  # ZMK Studio 테스트용 빌드 (scylla-zmk-config remapper 포팅 1단계).
+  # 기존 cornix_left_default_nosd는 그대로 두고 별도 아티팩트로 추가함.
+  # STUDIO_LOCKING=n은 키맵에 &studio_unlock 바인딩을 새로 넣지 않고
+  # 바로 테스트하기 위한 임시 조치 — 나중에 정식으로 쓸 거면 잠금 다시 켜고
+  # 언락 키를 키맵에 추가하는 걸 권장.
+  - board: cornix_left//zmk
+    snippet: studio-rpc-usb-uart nrf52840-nosd
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n
+    artifact-name: cornix_left_studio
+
   - board: cornix_ph_left//zmk
     # shield: cornix_indicator
     artifact-name: cornix_left_for_dongle_nosd
