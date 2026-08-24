@@ -3,6 +3,7 @@
 config ZMK_LAYER_MARKER
     bool "Layer-change marker for host-side overlay detection"
     default y
+    depends on !ZMK_SPLIT || (ZMK_SPLIT && ZMK_SPLIT_ROLE_CENTRAL)
     help
       Listens for ZMK's own layer_state_changed event (fired by every
       layer-referencing behavior: &mo, &lt, &tog, &to, &sl) and emits an
