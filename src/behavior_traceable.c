@@ -35,25 +35,27 @@
  * activation - releasing the physical layer key normally releases the
  * marker too. Also shifted the mapping from F20-F23 to F21-F24 so layer 1
  * doesn't map to a key that reads like "zero".
+ *
+ * NOTE(2026-08-25 #2): shifted again, F21-F24 -> F17/F18/F19/F13. Verified
+ * against real macOS source (Chromium's keycode_conversion_mac.mm) that
+ * macOS has no virtual keycode at all for F21-F24 - CGEventTap-based tools
+ * (the overlay app included) see them all collapse to one indistinguishable
+ * code. F1-F20 all have real virtual keycodes and ARE distinguishable, but
+ * F14/F15 default to brightness down/up and F20 acts as terminal Up-Arrow
+ * (shell history recall) on the dev machine - both confirmed by hitting them
+ * during testing. F13/F17/F18/F19 tested clean. Originally worked around via
+ * a Karabiner-Elements remap (F21->F17 etc.) sitting in front of CGEventTap,
+ * but emitting the already-safe usage directly removes that dependency
+ * entirely - the overlay app needs nothing but this firmware to work now.
  */
-
-#include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
-
-#include <zmk/event_manager.h>
-#include <zmk/events/layer_state_changed.h>
-#include <zmk/events/keycode_state_changed.h>
-
-#include <dt-bindings/zmk/hid_usage.h>
-#include <dt-bindings/zmk/hid_usage_pages.h>
-
-LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
-
-/* layer 1 -> F21, 2 -> F22, 3 -> F23, 4 -> F24. F24 is the last function key
- * in the HID usage table, so this scheme has no headroom for a 5th layer -
- * widen the layer cap below AND rework the mapping if that ever happens. */
 static uint16_t marker_usage_for_layer(uint8_t layer) {
-    return HID_USAGE_KEY_KEYBOARD_F20 + layer;
+    static const uint16_t usages[] = {
+        HID_USAGE_KEY_KEYBOARD_F17,
+        HID_USAGE_KEY_KEYBOARD_F18,
+        HID_USAGE_KEY_KEYBOARD_F19,
+        HID_USAGE_KEY_KEYBOARD_F13,
+    };
+    return usages[layer - 1];
 }
 
 static int layer_marker_listener(const zmk_event_t *eh) {
