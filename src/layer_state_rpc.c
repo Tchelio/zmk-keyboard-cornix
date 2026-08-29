@@ -60,22 +60,34 @@ zmk_studio_Response get_active_layers(const zmk_studio_Request *req) {
 ZMK_RPC_SUBSYSTEM_HANDLER(core, get_active_layers, ZMK_STUDIO_RPC_HANDLER_UNSECURED);
 
 /*
- * 레이어 변경 이벤트를 알림으로 매핑.
+ * 레이어가 바뀌면 알림을 직접 올린다.
  *
- * 이벤트가 실어 나르는 ev->layer / ev->state(어느 레이어가 어떻게 바뀌었는지)를
- * 쓰지 않고 zmk_keymap_layer_state()로 현재 전체 상태를 다시 읽는 것이 의도다.
- * 위 주석의 "매번 전체 상태" 원칙 - 이러면 알림 하나가 그 자체로 완전한 스냅샷이 된다.
+ * 원래는 ZMK_RPC_EVENT_MAPPER로 등록했는데 실기기에서 알림이 한 개도 안 나갔다
+ * (2026-08-30, 요청/응답은 정상 동작하는 같은 세션에서 확인). 매퍼 방식은
+ * rpc.c의 studio_rpc 리스너가 등록된 매퍼들을 차례로 호출하는 구조인데,
+ * ZMK의 keymap_subsystem.c가 이런 걸 등록해 두고 있다:
  *
- * 매퍼 이름은 core가 아니라 layer_state여야 한다. ZMK의 core_subsystem.c가
- * ZMK_RPC_EVENT_MAPPER(core, ...)를 이미 쓰고 있어서 이름이 겹치면 심볼이
- * 충돌한다(같은 이유로 ZMK_RPC_SUBSYSTEM(core)도 여기서 다시 선언하지 않는다 -
- * 서브시스템 자체는 ZMK가 정의하고, 우리는 핸들러와 매퍼만 얹는다).
+ *   static int event_mapper(...) { return 0; }   // 무조건 "처리함"
+ *   ZMK_RPC_EVENT_MAPPER(keymap, event_mapper);
+ *
+ * 매퍼 루프는 첫 번째로 0 이상을 반환한 매퍼에서 break하므로, 링크 순서상
+ * 우리보다 앞에 있으면 우리 매퍼는 호출되지 않는다(src/studio/CMakeLists.txt
+ * 기준 keymap_subsystem.c가 모듈 소스보다 먼저 링크된다).
+ *
+ * 그래서 매퍼에 의존하지 않고 자체 리스너에서 알림 이벤트를 직접 올린다.
+ * raise_zmk_studio_rpc_notification은 zmk/studio/rpc.h가 공개하는 API이고,
+ * rpc.c의 리스너가 그 이벤트를 받아 전송까지 처리한다. 이 저장소에서 이미
+ * 검증된 패턴이기도 하다 - 기존 F키 마커(behavior_traceable.c)도 자체
+ * ZMK_LISTENER/ZMK_SUBSCRIPTION으로 동작했다.
+ *
+ * 이벤트가 실어 나르는 ev->layer/ev->state는 쓰지 않고 zmk_keymap_layer_state()로
+ * 현재 전체 상태를 다시 읽는다 - 알림 하나가 그 자체로 완전한 스냅샷이 되도록.
  */
-static int layer_state_event_mapper(const zmk_event_t *eh, zmk_studio_Notification *n) {
+static int layer_state_listener(const zmk_event_t *eh) {
     const struct zmk_layer_state_changed *ev = as_zmk_layer_state_changed(eh);
 
     if (ev == NULL) {
-        return -ENOTSUP;
+        return ZMK_EV_EVENT_BUBBLE;
     }
 
     zmk_keymap_layers_state_t state = zmk_keymap_layer_state();
@@ -83,8 +95,12 @@ static int layer_state_event_mapper(const zmk_event_t *eh, zmk_studio_Notificati
     LOG_DBG("layer %d %s, active layers now 0x%08x", ev->layer,
             ev->state ? "activated" : "deactivated", (uint32_t)state);
 
-    *n = ZMK_RPC_NOTIFICATION(core, active_layers_changed, (uint32_t)state);
-    return 0;
+    raise_zmk_studio_rpc_notification((struct zmk_studio_rpc_notification){
+        .notification = ZMK_RPC_NOTIFICATION(core, active_layers_changed, (uint32_t)state),
+    });
+
+    return ZMK_EV_EVENT_BUBBLE;
 }
 
-ZMK_RPC_EVENT_MAPPER(layer_state, layer_state_event_mapper, zmk_layer_state_changed);
+ZMK_LISTENER(layer_state_rpc, layer_state_listener);
+ZMK_SUBSCRIPTION(layer_state_rpc, zmk_layer_state_changed);
