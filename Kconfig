@@ -1,29 +1,5 @@
 # Custom modules provided by this zmk-config repo, built as a Zephyr module.
 
-config ZMK_LAYER_MARKER
-    bool "Layer-change marker for host-side overlay detection"
-    default n
-    depends on !ZMK_SPLIT || (ZMK_SPLIT && ZMK_SPLIT_ROLE_CENTRAL)
-    help
-      Listens for ZMK's own layer_state_changed event (fired by every
-      layer-referencing behavior: &mo, &lt, &tog, &to, &sl) and emits an
-      unused F-key (F17/F18/F19/F13) as an invisible marker whenever a
-      layer is activated. ZMK Studio's RPC exposes no layer-state
-      notification at all, so this is the only way for a host-side overlay
-      to detect which layer is currently active.
-
-      Disabled by default (2026-08-28): the marker is a real HID keystroke,
-      so any app with focus - not just the overlay - receives it too. macOS
-      terminals decode F13+ as an ESC[NN~ escape sequence, and this was
-      confirmed to corrupt raw (unechoed) reads like sudo's password prompt
-      - not just cosmetic tilde leakage, actual auth failures, reproduced
-      with every marker layer (F17/F18/F13), not just one. Turning this back
-      on requires the CGEventTap-side interception in overlay-app's
-      spawn_listener to be fully reliable first (it wasn't: permission
-      registration, macOS's own tap-auto-disable, and shell raw-read vs.
-      line-editor differences all separately defeated it in testing). See
-      keyboard-restore-레이어마커-전역리스너 in the vault for the full history.
-
 config ZMK_LAYER_STATE_RPC
     bool "Report active layers to the host over ZMK Studio RPC"
     default y
@@ -35,9 +11,9 @@ config ZMK_LAYER_STATE_RPC
       함께 등록한다(core.proto의 active_layers_changed /
       get_active_layers - proto 저장소 포크에서 추가한 필드).
 
-      ZMK_LAYER_MARKER를 대체한다. 마커 방식은 안 쓰는 F키를 실제로 눌러
-      보내는 것이라 포커스된 모든 앱이 그 키를 받았고, 터미널에서 sudo
-      비밀번호 프롬프트가 깨지는 문제가 있어 비활성화됐다. 이쪽은 키 입력을
+      예전에는 안 쓰는 F키를 실제로 눌러 보내는 마커 방식이었으나(구
+      ZMK_LAYER_MARKER), 그건 진짜 HID 키 입력이라 포커스된 모든 앱이
+      받았고 터미널에서 sudo 비밀번호 프롬프트가 깨졌다. 이쪽은 키 입력을
       전혀 보내지 않으므로 다른 앱에 영향이 없다.
 
       proto 필드가 필요하므로 config/west.yml에서 zmk-studio-messages를
