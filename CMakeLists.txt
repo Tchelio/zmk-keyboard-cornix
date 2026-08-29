@@ -1,1 +1,2 @@
 target_sources_ifdef(CONFIG_ZMK_LAYER_MARKER app PRIVATE src/behavior_traceable.c)
+target_sources_ifdef(CONFIG_ZMK_LAYER_STATE_RPC app PRIVATE src/layer_state_rpc.c)

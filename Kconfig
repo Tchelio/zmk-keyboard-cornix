@@ -23,3 +23,22 @@ config ZMK_LAYER_MARKER
       registration, macOS's own tap-auto-disable, and shell raw-read vs.
       line-editor differences all separately defeated it in testing). See
       keyboard-restore-레이어마커-전역리스너 in the vault for the full history.
+
+config ZMK_LAYER_STATE_RPC
+    bool "Report active layers to the host over ZMK Studio RPC"
+    default y
+    depends on ZMK_STUDIO_RPC
+    depends on !ZMK_SPLIT || (ZMK_SPLIT && ZMK_SPLIT_ROLE_CENTRAL)
+    help
+      레이어가 바뀔 때마다 활성 레이어 비트마스크를 Studio RPC 알림으로
+      호스트에 보내고, 호스트가 현재 상태를 물어볼 수 있는 요청 핸들러도
+      함께 등록한다(core.proto의 active_layers_changed /
+      get_active_layers - proto 저장소 포크에서 추가한 필드).
+
+      ZMK_LAYER_MARKER를 대체한다. 마커 방식은 안 쓰는 F키를 실제로 눌러
+      보내는 것이라 포커스된 모든 앱이 그 키를 받았고, 터미널에서 sudo
+      비밀번호 프롬프트가 깨지는 문제가 있어 비활성화됐다. 이쪽은 키 입력을
+      전혀 보내지 않으므로 다른 앱에 영향이 없다.
+
+      proto 필드가 필요하므로 config/west.yml에서 zmk-studio-messages를
+      포크로 덮어쓴 상태여야 빌드된다.
