@@ -2,6 +2,8 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
+    - name: tchelio
+      url-base: https://github.com/Tchelio
     - name: hitsmaxft
       url-base: https://github.com/hitsmaxft
     - name: englmaxi
@@ -13,6 +15,25 @@ manifest:
     - name: cormoran
       url-base: https://github.com/cormoran
   projects:
+    # ZMK의 app/west.yml이 zmkfirmware/zmk-studio-messages를 특정 커밋으로
+    # 고정하는데, 그걸 내 포크로 덮어쓴다. west는 프로젝트를 "이름"으로
+    # 식별하고 같은 이름이 여러 매니페스트에 있으면 "가장 먼저 나온 정의"를
+    # 쓰는데, 최상위 매니페스트(= 이 파일)가 import보다 먼저 처리되므로
+    # 여기 적은 것이 이긴다.
+    #
+    # 목적: Studio RPC로 활성 레이어를 호스트에 알리기 위해 core.proto에
+    # 필드를 추가함(get_active_layers / active_layers_changed). ZMK 엔진은
+    # 공식 main 그대로 두고 proto만 갈아끼우는 구성 - ZMK가 proto 파일을
+    # CMakeLists에 이름으로 나열해서 새 파일은 못 넣기 때문에, 새 서브시스템
+    # 대신 기존 core.proto에 필드를 얹었다.
+    # 경위: vault의 keyboard-레이어상태-호스트전달채널-재설계 참조.
+    #
+    # path는 ZMK가 쓰는 것과 동일하게 유지(ZEPHYR_ZMK_STUDIO_MESSAGES_MODULE_DIR).
+    - name: zmk-studio-messages
+      remote: tchelio
+      revision: main
+      path: modules/msgs/zmk-studio-messages
+
     - name: zmk
       remote: zmkfirmware
       revision: main
