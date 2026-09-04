@@ -88,7 +88,7 @@
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             display-name = "Win";
-            bindings = <&bt BT_SEL 1>, <&to 6>;
+            bindings = <&bt BT_SEL 1>, <&to 1>;
         };
 
         prof_3: prof_3 {
@@ -102,6 +102,13 @@
     keymap {
         compatible = "zmk,keymap";
 
+        // NOTE(2026-09-05): 레이어 번호 재배치. 윈도우 오버레이(구 6번)를 1번으로 내림.
+        // ZMK는 "활성 레이어 중 인덱스가 가장 높은 것"이 이기므로(공식 문서 keymaps/index.mdx),
+        // OS 오버레이를 최상위에 두면 그 레이어가 정의한 자리를 아래 momentary 레이어들이
+        // 영영 못 씀. 공식 문서도 "베이스 레이어가 여러 개면 가능한 한 낮은 번호를 쓰라"고
+        // 명시함. 그래서 Win=1로 내리고 나머지를 한 칸씩 밀었음.
+        //   0=Mac  1=Win  2=Num  3=L3(예비)  4=Sym  5=Fn  6=Num_P
+
         default_layer {
             display-name = "Mac";
 
@@ -109,20 +116,22 @@
             // | Tab      | Q | W | X | E | T |               | Y | U | I  | O    | P     | Bkspc |
             // | CapsLock | A | S | D | F | G |               | H | J | K  | L    | \|\   | Enter |
             // | LShift   | Z | X | C | V | B | Mute | Mouse3 | N | M | ,  | .    | 키1(*) | 키2(**)|
-            // | LCtrl | LGui | LAlt | MO(1) | MO(1) | Space | | Space | MO(4) | MO(2) | Left | Down | Right |
+            // | LGui | LAlt | LCtrl | MO(4) | MO(2) | Space | | Space | LT(3) | MO(5) | Left | Down | Right |
             // (*)  키1 = mod-morph, 탭=Up 화살표(원래 `/` 자리), 우쉬프트(키2 홀드)+탭=`?`
             // (**) 키2 = mod-tap(&mt), 탭=`/`, 홀드=RShift(원래 RShift 단독키였던 자리)
-            // NOTE(2026-08-25 정정): 왼쪽 엄지 두 자리가 둘 다 MO(1)인 건 오타가 아니라 "어디가
-            // 편한지" 일부러 같은 레이어를 양쪽에 박아둔 A/B 테스트임(사용자 확인).
+            // NOTE(2026-09-05): 좌하단 3개는 Cmd/Opt/Ctrl 순서 — 맥 정품(Ctrl/Opt/Cmd)이 아니라
+            // 단축키 모디파이어(Cmd)를 윈도우의 Ctrl 자리(맨 왼쪽)로 맞춘 배열. Cmd+Opt 조합이
+            // 붙어 있어서 ⌘⌥Esc/⌘⌥I 같은 맥 기본 조합도 손가락이 굴러감.
+            // 우엄지 LT(3) = 탭이면 맥 한/영(Ctrl+Space), 홀드면 레이어3.
             // NOTE(2026-08-25): 오버레이 앱용 레이어 마커는 더 이상 커스텀 비헤이비어가 아니라
             // src/behavior_traceable_mo.c의 전역 이벤트 리스너(zmk_layer_state_changed 구독)가
             // 처리함 - 여기 bindings는 그냥 stock &mo 그대로라 키맵에디터에서도 정상 인식됨.
 
             bindings = <
-&kp TAB    &kp Q     &kp W      &kp E  &kp R  &kp T                            &kp Y      &kp U  &kp I      &kp O     &kp P              &kp BSPC
-&kp CAPS   &kp A     &kp S      &kp D  &kp F  &kp G                            &kp H      &kp J  &kp K      &kp L     &kp BSLH           &kp RET
-&kp LSHFT  &kp Z     &kp X      &kp C  &kp V  &kp B      &kp C_MUTE  &mkp MB3  &kp N      &kp M  &kp COMMA  &kp DOT   &key1_arrow_qmark  &mt RSHFT FSLH
-&kp LGUI  &kp LALT  &kp LCTRL  &mo 3  &mo 1  &kp SPACE                  &kp SPACE  &lt 2 LC(SPACE)  &mo 4  &kp LEFT  &kp DOWN  &kp RIGHT
+&kp TAB    &kp Q     &kp W      &kp E  &kp R  &kp T                            &kp Y      &kp U            &kp I      &kp O     &kp P              &kp BSPC
+&kp CAPS   &kp A     &kp S      &kp D  &kp F  &kp G                            &kp H      &kp J            &kp K      &kp L     &kp BSLH           &kp RET
+&kp LSHFT  &kp Z     &kp X      &kp C  &kp V  &kp B      &kp C_MUTE  &mkp MB3  &kp N      &kp M            &kp COMMA  &kp DOT   &key1_arrow_qmark  &mt RSHFT FSLH
+&kp LGUI   &kp LALT  &kp LCTRL  &mo 4  &mo 2  &kp SPACE                        &kp SPACE  &lt 3 LC(SPACE)  &mo 5      &kp LEFT  &kp DOWN           &kp RIGHT
             >;
 
             sensor-bindings =
@@ -130,26 +139,49 @@
                 <&scroll_encoder>;
         };
 
-        layer_1_num {
+        layer_1_win {
+            display-name = "Win";
+
+            // 윈도우 오버레이. `&prof_win`(레이어5 Fn)이 `&to 1`로 켜고, `&prof_mac`이 `&to 0`으로 끔.
+            // Base 바로 위(가장 낮은 오버레이)라 위의 momentary 레이어들이 전부 이 레이어를 이김 -
+            // 즉 Num/Sym/Fn/Num_P가 윈도우 상태에서도 그대로 다 동작함.
+            // 좌하단 3개 = 윈도우 배열(Ctrl/Win/Alt), 우엄지 = 윈도우 한/영(LANG1).
+            // 딥슬립(ZMK_SLEEP)을 안 켜뒀으므로 리셋 전까지 이 상태가 유지됨.
+
+            bindings = <
+&trans     &trans    &trans    &trans  &trans  &trans                  &trans  &trans       &trans  &trans  &trans  &trans
+&trans     &trans    &trans    &trans  &trans  &trans                  &trans  &trans       &trans  &trans  &trans  &trans
+&trans     &trans    &trans    &trans  &trans  &trans  &trans  &trans  &trans  &trans       &trans  &trans  &trans  &trans
+&kp LCTRL  &kp LGUI  &kp LALT  &trans  &trans  &trans                  &trans  &lt 3 LANG1  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        layer_2_num {
             display-name = "Num";
 
             // 실기기 Layer 1 — 상단열만 확인됨(Esc + 숫자), 나머지는 비어있어서 &trans
             // NOTE(2026-08-22 정정): 키캡 표기 `!1`은 "탭=1, 쉬프트+탭=!"라는 뜻인데 처음엔 반대로
             // 심볼(EXCL 등)을 탭 기본값으로 넣는 실수를 함 — 순수 숫자로 정정. 쉬프트는 그냥 눌리는 대로
             // 정상 작동하니 별도 처리 불필요(레이어랑 쉬프트는 서로 안 막음).
+            // NOTE(2026-09-05): 하단열 Sym 자리에 &mo 6 — 수동 tri-layer. Num 잡고 옆(Sym) 자리를
+            // 누르면 Num_P(넘패드). conditional_layers 대신 이렇게 한 이유는 키맵에디터가
+            // `keymap` 노드 안만 읽어서, 특수 노드로 빼면 에디터에서 안 보이기 때문.
 
             bindings = <
-&kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5                  &kp N6  &kp N7     &kp N8  &kp N9  &kp N0  &trans
-&trans     &trans  &trans  &trans  &trans  &trans                  &trans  &trans     &trans  &trans  &trans  &trans
-&trans     &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans     &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &mo 5  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5                  &kp N6  &kp N7  &kp N8  &kp N9  &kp N0  &trans
+&trans     &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans     &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans     &trans  &trans  &mo 6   &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
 
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
         };
 
-        layer_2 {
-            display-name = "L2";
+        layer_3 {
+            display-name = "L3";
+
+            // 예비 레이어. 우엄지 LT(3) 홀드로 들어옴. 아직 내용 미정.
+
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &kp DELETE
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
@@ -158,55 +190,44 @@
             >;
         };
 
-        layer_3_sym {
+        layer_4_sym {
             display-name = "Sym";
+
+            // NOTE(2026-09-05): 하단열 Num 자리에 &mo 6 — tri-layer 반대 방향(Sym 잡고 Num 누르기).
+
             bindings = <
 &kp ESC  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp MINUS      &kp EQUAL  &trans
 &trans   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp LBKT       &kp RBKT   &trans
 &trans   &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp SEMICOLON  &kp SQT    &trans
-&trans  &trans  &trans  &trans  &mo 5  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans   &trans  &trans  &trans  &mo 6   &trans                  &trans  &trans  &trans  &trans         &trans     &trans
             >;
         };
 
-        layer_4_profiles_fn {
+        layer_5_fn {
             display-name = "Fn";
 
-            // NOTE(2026-09-05): 프로필 매크로를 stock BT_SEL처럼 좌측 세로줄(0/12/24/38)에
-            // 두면 마지막 자리가 하단열이라 layer_6_win의 &kp LCTRL과 겹침 - ZMK는 레이어
-            // 인덱스가 높은 쪽이 이기므로 윈도우 레이어에 있는 동안 그 키를 못 씀.
-            // 하단열을 피해서 2행 왼쪽에 가로로 배치함.
+            // 좌측 세로줄 = BT 초기화 + OS 프로필 매크로(macros 노드 참고).
+            // 레이어 5라 윈도우 오버레이(1)보다 위에 있어서, 윈도우 상태에서도 하단열 자리가
+            // 안 가려짐 - 어느 OS에서든 프로필 3개 다 누를 수 있음.
 
             bindings = <
-&bt BT_CLR    &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                  &kp F6  &kp F7  &kp F8  &kp F9   &kp F10  &kp DELETE
-&prof_mac     &prof_win  &prof_3  &trans  &trans  &trans                  &trans  &trans  &trans  &kp F11  &kp F12  &trans
-&trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans   &trans   &trans
-&trans        &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans   &trans   &trans
+&bt BT_CLR  &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                  &kp F6  &kp F7  &kp F8  &kp F9   &kp F10  &kp DELETE
+&prof_mac   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp F11  &kp F12  &trans
+&prof_win   &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans   &trans   &trans
+&prof_3     &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans   &trans   &trans
             >;
         };
 
-        layer_5_numpad {
+        layer_6_numpad {
             display-name = "Num_P";
+
+            // Num + Sym 동시(수동 tri-layer)로 들어옴.
 
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp N7  &kp N8  &kp N9
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp N4  &kp N5  &kp N6
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp N1  &kp N2  &kp N3
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp N0  &trans  &trans
-            >;
-        };
-
-        layer_6_win {
-            display-name = "Win";
-
-            // 윈도우 오버레이. `&to 6`으로 켜두면 레이어 인덱스가 제일 높아서
-            // 여기서 정의한 자리만 다른 레이어를 덮어씀(나머지는 &trans라 그대로 통과).
-            // 좌하단 3개 = 윈도우 배열, 우엄지 = 윈도우 한/영(LANG1).
-
-            bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&kp LCTRL  &kp LGUI  &kp LALT  &trans  &trans  &trans  &trans  &lt 2 LANG1  &trans  &trans  &trans  &trans
             >;
         };
     };
