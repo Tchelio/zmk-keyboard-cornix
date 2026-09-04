@@ -37,7 +37,17 @@ include:
   # 언락 키를 키맵에 추가하는 걸 권장.
   - board: cornix_left//zmk
     snippet: studio-rpc-usb-uart nrf52840-nosd
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n
+    # CONFIG_BT_CTLR_PHY_2M=n (2026-09-04): 윈도우에서 재부팅 후 BLE 재연결이
+    # 안 되던 문제. "페어링됨"으로만 남고 실제로 안 붙었고, 양쪽 본딩을 지우고
+    # 다시 맺어야만 됐다. 맥·아이패드는 멀쩡했고 같은 PC에 붙인 다른(비ZMK)
+    # 블투 키보드도 멀쩡해서 호스트 문제로만 보기 어려웠다.
+    # ZMK 공식 트러블슈팅이 정확히 이 경우를 다룬다 - "특정 무선 칩셋 펌웨어
+    # 버전에서, 특히 윈도우에서 2M PHY를 끄면 페어링/연결에 도움이 된다".
+    # 해당 PC의 어댑터는 UGREEN CM591(Actions ATS2851, LMP 12.513).
+    # 대가는 링크 속도 2M->1M 뿐이고 키보드 트래픽엔 체감이 없다. 오히려
+    # 거리·잡음 내성은 1M이 낫다. 효과 없으면 다음 후보는
+    # CONFIG_ZMK_BLE_PASSKEY_ENTRY=y (지금 =n).
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n -DCONFIG_BT_CTLR_PHY_2M=n
     artifact-name: cornix_left_studio
 
   - board: cornix_ph_left//zmk
