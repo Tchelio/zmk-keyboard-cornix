@@ -63,6 +63,21 @@ include:
     snippet: studio-rpc-usb-uart nrf52840-nosd
     artifact-name: cornix_reset
 
+  # 좌측 보드로 빌드한 설정 초기화 (2026-09-04 추가).
+  #
+  # 위 cornix_reset(우측 보드)도 왼쪽에 올리면 동작하기는 한다 - 좌우가 같은
+  # nRF52840이고 settings_reset은 설정 파티션만 지우기 때문. 이건 보드가
+  # 맞는 것을 쓰고 싶을 때를 위한 것이다.
+  #
+  # 스플릿은 좌우가 서로를 본딩해 기억하므로, 좌우가 안 붙으면 **양쪽 다**
+  # 리셋한 뒤 양쪽에 정상 펌웨어를 다시 올려야 한다. 한쪽만 지우면 나머지가
+  # 옛 짝을 계속 기억해 어긋난 채로 남는다. 왼쪽 설정이 지워지면 호스트 BT
+  # 프로필(맥/아이패드/윈도우)도 같이 날아가므로 재페어링이 필요하다.
+  - board: cornix_left//zmk
+    shield: settings_reset
+    snippet: studio-rpc-usb-uart nrf52840-nosd
+    artifact-name: cornix_left_reset
+
   - board: nice_nano//zmk
     shield: settings_reset
     snippet: studio-rpc-usb-uart nrf52840-nosd
