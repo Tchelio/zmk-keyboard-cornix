@@ -69,6 +69,22 @@
 
             tap-ms = <40>;
         };
+
+        // NOTE(2026-09-05): Win 레이어 한/영 자리 전용 hold-tap.
+        // stock &lt를 못 쓰는 이유: &lt의 탭 절반은 <&kp>라 키코드만 받는데, 여기선 탭에
+        // 매크로(LANG1 + F24 두 개 송신)를 물려야 함. hold-tap은 tap 바인딩에 param2를
+        // 그대로 넘길 뿐이고 zmk_behavior_invoke_binding이 #binding-cells를 검증하지
+        // 않으므로(behavior.c:67), 0-cell 매크로를 물리고 더미 파라미터 0을 주면 됨.
+        // flavor는 stock &lt(tap-preferred) 대신 &mt와 같은 hold-preferred.
+
+        lt_hanyoung: lt_hanyoung {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "hold-preferred";
+            tapping-term-ms = <200>;
+            bindings = <&mo>, <&hanyoung_win>;
+            display-name = "Layer-Tap 한영";
+        };
     };
 
     // NOTE(2026-09-05): OS별 프로필 전환. `&bt BT_SEL n`은 현재 엔드포인트가 USB인지 확인하지
@@ -89,6 +105,21 @@
             #binding-cells = <0>;
             display-name = "Win";
             bindings = <&bt BT_SEL 1>, <&to 1>;
+        };
+
+        // NOTE(2026-09-05): 윈도우 한/영 + Deskflow 경유 맥 한/영을 한 번에.
+        // LANG1은 윈도우 IME를 바꾸고, F24는 Deskflow가 RegisterHotKey로 가로채서
+        // 맥에 Alt+Space를 쏜다(config: keystroke(F24) = keyDown/keyUp(Alt+Space,hshomac)).
+        // F24를 쓰는 이유: 핫키는 OS 전역 등록이라 트리거 키를 소비하는데, 안 쓰는 키를
+        // 트리거로 삼으면 잃을 게 없다. 한/영 키를 직접 트리거로 걸면 윈도우 IME까지
+        // 키가 안 가서 윈도우에서 한글을 못 치게 된다.
+        // 부수 효과로 양쪽 OS의 IME 상태가 같이 뒤집혀 동기화가 유지된다.
+
+        hanyoung_win: hanyoung_win {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "한영+F24";
+            bindings = <&kp LANG1>, <&kp F24>;
         };
 
         prof_3: prof_3 {
@@ -152,7 +183,7 @@
 &trans     &trans    &trans    &trans  &trans  &trans                  &trans  &trans       &trans  &trans  &trans  &trans
 &trans     &trans    &trans    &trans  &trans  &trans                  &trans  &trans       &trans  &trans  &trans  &trans
 &trans     &trans    &trans    &trans  &trans  &trans  &trans  &trans  &trans  &trans       &trans  &trans  &trans  &trans
-&kp LCTRL  &kp LGUI  &kp LALT  &trans  &trans  &trans                  &trans  &lt 3 LANG1  &trans  &trans  &trans  &trans
+&kp LCTRL  &kp LGUI  &kp LALT  &trans  &trans  &trans                  &trans  &lt_hanyoung 3 0  &trans  &trans  &trans  &trans
             >;
         };
 
@@ -214,7 +245,7 @@
 &bt BT_CLR  &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                  &kp F6  &kp F7  &kp F8  &kp F9   &kp F10  &kp DELETE
 &prof_mac   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp F11  &kp F12  &trans
 &prof_win   &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans   &trans   &trans
-&prof_3     &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans   &trans   &trans
+&prof_3  &trans  &trans  &trans  &trans  &trans                  &trans  &trans         &trans  &trans  &trans  &trans
             >;
         };
 
