@@ -22,6 +22,15 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/pointing.h>
 
+// NOTE(2026-09-05): stock &lt는 flavor="tap-preferred"라 홀드로 인정받으려면 200ms를 꽉
+// 채워야 함(다른 키를 먼저 눌러도 탭으로 처리됨). &mt와 정의가 완전히 같고 flavor 한 줄만
+// 다르므로, 커스텀 hold-tap을 새로 만들지 않고 stock 노드의 프로퍼티만 덮어씀. 이렇게 하면
+// 키맵에는 그냥 `&lt`로 남아서 키맵에디터도 표준 behavior로 정상 인식함.
+// 한영 치고 바로 다음 글자를 때렸을 때 홀드로 오인되면 "balanced"로 바꿀 것.
+&lt {
+    flavor = "hold-preferred";
+};
+
 / {
     behaviors {
         // 키1: 탭=Up(화살표), 우쉬프트(키2 홀드)+탭='?', 좌쉬프트+탭=조건 불일치라 그냥 Shift+Up 통과(드래그/선택)
@@ -62,6 +71,34 @@
         };
     };
 
+    // NOTE(2026-09-05): OS별 프로필 전환. `&bt BT_SEL n`은 현재 엔드포인트가 USB인지 확인하지
+    // 않고 BLE 프로필 포인터만 바꾸므로(zmk_ble_prof_select), 유선 상태에서는 사실상 무시되고
+    // `&to`만 실행됨 - 즉 유선/무선 구분 없이 같은 키로 레이어가 전환됨.
+    // #binding-cells = <0> + display-name 이라 키맵에디터 키 목록에도 그대로 뜸.
+
+    macros {
+        prof_mac: prof_mac {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Mac";
+            bindings = <&bt BT_SEL 0>, <&to 0>;
+        };
+
+        prof_win: prof_win {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Win";
+            bindings = <&bt BT_SEL 1>, <&to 6>;
+        };
+
+        prof_3: prof_3 {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            display-name = "Prof3";
+            bindings = <&bt BT_SEL 2>, <&to 0>;
+        };
+    };
+
     keymap {
         compatible = "zmk,keymap";
 
@@ -85,7 +122,7 @@
 &kp TAB    &kp Q     &kp W      &kp E  &kp R  &kp T                            &kp Y      &kp U  &kp I      &kp O     &kp P              &kp BSPC
 &kp CAPS   &kp A     &kp S      &kp D  &kp F  &kp G                            &kp H      &kp J  &kp K      &kp L     &kp BSLH           &kp RET
 &kp LSHFT  &kp Z     &kp X      &kp C  &kp V  &kp B      &kp C_MUTE  &mkp MB3  &kp N      &kp M  &kp COMMA  &kp DOT   &key1_arrow_qmark  &mt RSHFT FSLH
-&kp LGUI   &kp LALT  &kp LCTRL  &mo 3  &mo 1  &kp SPACE                        &kp SPACE  &mo 2  &mo 4      &kp LEFT  &kp DOWN           &kp RIGHT
+&kp LGUI  &kp LALT  &kp LCTRL  &mo 3  &mo 1  &kp SPACE                  &kp SPACE  &lt 2 LC(SPACE)  &mo 4  &kp LEFT  &kp DOWN  &kp RIGHT
             >;
 
             sensor-bindings =
@@ -105,7 +142,7 @@
 &kp GRAVE  &kp N1  &kp N2  &kp N3  &kp N4  &kp N5                  &kp N6  &kp N7     &kp N8  &kp N9  &kp N0  &trans
 &trans     &trans  &trans  &trans  &trans  &trans                  &trans  &trans     &trans  &trans  &trans  &trans
 &trans     &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans     &trans  &trans  &trans  &trans
-&trans     &trans  &trans  &trans  &trans  &trans                  &trans  &kp LANG1  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &mo 5  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
 
             sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp PG_UP PG_DN>;
@@ -127,21 +164,29 @@
 &kp ESC  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp MINUS      &kp EQUAL  &trans
 &trans   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp LBKT       &kp RBKT   &trans
 &trans   &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp SEMICOLON  &kp SQT    &trans
-&trans   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans         &trans     &trans
+&trans  &trans  &trans  &trans  &mo 5  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
 
         layer_4_profiles_fn {
             display-name = "L4";
+
+            // NOTE(2026-09-05): 프로필 매크로를 stock BT_SEL처럼 좌측 세로줄(0/12/24/38)에
+            // 두면 마지막 자리가 하단열이라 layer_6_win의 &kp LCTRL과 겹침 - ZMK는 레이어
+            // 인덱스가 높은 쪽이 이기므로 윈도우 레이어에 있는 동안 그 키를 못 씀.
+            // 하단열을 피해서 2행 왼쪽에 가로로 배치함.
+
             bindings = <
 &bt BT_CLR    &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                  &kp F6  &kp F7  &kp F8  &kp F9   &kp F10  &kp DELETE
-&bt BT_SEL 0  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp F11  &kp F12  &trans
-&bt BT_SEL 1  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans   &trans   &trans
-&bt BT_SEL 2  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans   &trans   &trans
+&prof_mac     &prof_win  &prof_3  &trans  &trans  &trans                  &trans  &trans  &trans  &kp F11  &kp F12  &trans
+&trans        &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans   &trans   &trans
+&trans        &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans   &trans   &trans
             >;
         };
 
         layer_5_numpad {
+            display-name = "L5";
+
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp N7  &kp N8  &kp N9
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp N4  &kp N5  &kp N6
@@ -151,11 +196,17 @@
         };
 
         layer_6_win {
+            display-name = "L6";
+
+            // 윈도우 오버레이. `&to 6`으로 켜두면 레이어 인덱스가 제일 높아서
+            // 여기서 정의한 자리만 다른 레이어를 덮어씀(나머지는 &trans라 그대로 통과).
+            // 좌하단 3개 = 윈도우 배열, 우엄지 = 윈도우 한/영(LANG1).
+
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&kp LCTRL  &kp LGUI  &kp LALT  &trans  &trans  &trans  &trans  &lt 2 LANG1  &trans  &trans  &trans  &trans
             >;
         };
     };
