@@ -103,7 +103,7 @@
         compatible = "zmk,keymap";
 
         default_layer {
-            display-name = "Base";
+            display-name = "Mac";
 
             // ------------------------------------------------------------------------------------------------
             // | Tab      | Q | W | X | E | T |               | Y | U | I  | O    | P     | Bkspc |
@@ -131,7 +131,7 @@
         };
 
         layer_1_num {
-            display-name = "L1";
+            display-name = "Num";
 
             // 실기기 Layer 1 — 상단열만 확인됨(Esc + 숫자), 나머지는 비어있어서 &trans
             // NOTE(2026-08-22 정정): 키캡 표기 `!1`은 "탭=1, 쉬프트+탭=!"라는 뜻인데 처음엔 반대로
@@ -159,7 +159,7 @@
         };
 
         layer_3_sym {
-            display-name = "L3";
+            display-name = "Sym";
             bindings = <
 &kp ESC  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp MINUS      &kp EQUAL  &trans
 &trans   &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp LBKT       &kp RBKT   &trans
@@ -169,7 +169,7 @@
         };
 
         layer_4_profiles_fn {
-            display-name = "L4";
+            display-name = "Fn";
 
             // NOTE(2026-09-05): 프로필 매크로를 stock BT_SEL처럼 좌측 세로줄(0/12/24/38)에
             // 두면 마지막 자리가 하단열이라 layer_6_win의 &kp LCTRL과 겹침 - ZMK는 레이어
@@ -185,7 +185,7 @@
         };
 
         layer_5_numpad {
-            display-name = "L5";
+            display-name = "Num_P";
 
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &kp N7  &kp N8  &kp N9
@@ -196,7 +196,7 @@
         };
 
         layer_6_win {
-            display-name = "L6";
+            display-name = "Win";
 
             // 윈도우 오버레이. `&to 6`으로 켜두면 레이어 인덱스가 제일 높아서
             // 여기서 정의한 자리만 다른 레이어를 덮어씀(나머지는 &trans라 그대로 통과).
