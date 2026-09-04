@@ -27,9 +27,8 @@
 // 다르므로, 커스텀 hold-tap을 새로 만들지 않고 stock 노드의 프로퍼티만 덮어씀. 이렇게 하면
 // 키맵에는 그냥 `&lt`로 남아서 키맵에디터도 표준 behavior로 정상 인식함.
 // 한영 치고 바로 다음 글자를 때렸을 때 홀드로 오인되면 "balanced"로 바꿀 것.
-&lt {
-    flavor = "hold-preferred";
-};
+
+&lt { flavor = "hold-preferred"; };
 
 / {
     behaviors {
@@ -81,21 +80,21 @@
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             display-name = "Mac";
-            bindings = <&bt BT_SEL 0>, <&to 0>;
+            bindings = <&bt BT_SEL 0 &to 0>;
         };
 
         prof_win: prof_win {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             display-name = "Win";
-            bindings = <&bt BT_SEL 1>, <&to 1>;
+            bindings = <&bt BT_SEL 1 &to 1>;
         };
 
         prof_3: prof_3 {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             display-name = "Prof3";
-            bindings = <&bt BT_SEL 2>, <&to 0>;
+            bindings = <&bt BT_SEL 2 &to 0>;
         };
     };
 
@@ -183,10 +182,10 @@
             // 예비 레이어. 우엄지 LT(3) 홀드로 들어옴. 아직 내용 미정.
 
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &kp DELETE
-&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans      &trans    &trans         &kp DELETE
+&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &kp INSERT  &kp HOME  &kp PAGE_UP    &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp DELETE  &kp END   &kp PAGE_DOWN  &trans
+&trans  &trans  &trans  &trans  &trans  &trans                  &trans  &trans  &trans      &trans    &trans         &trans
             >;
         };
 
