@@ -56,6 +56,12 @@ include:
 
   - board: cornix_right//zmk
     # shield: cornix_indicator
+    # 좌측과 **같은** PHY 설정이어야 한다. 좌우 통신도 BLE라, 한쪽만 2M PHY를
+    # 끄면 컨트롤러 기능이 어긋나 좌우가 안 붙는다(2026-09-04에 실제로 그렇게
+    # 먹통이 됐다 - 왼쪽에만 걸었다가 오른쪽이 죽었고, 양쪽 설정 초기화로도
+    # 복구되지 않았다). 좌측 cmake-args의 CONFIG_BT_CTLR_PHY_2M과 항상 함께
+    # 바꿀 것.
+    cmake-args: -DCONFIG_BT_CTLR_PHY_2M=n
     artifact-name: cornix_right_nosd
 
   - board: cornix_right//zmk
