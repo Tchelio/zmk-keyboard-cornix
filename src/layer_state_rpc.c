@@ -18,11 +18,13 @@
  *
  * 프로토콜: 새 서브시스템을 만들려면 ZMK 본체를 포크해야 한다(app/CMakeLists
  * .txt가 .proto 파일을 이름으로 나열해서 새 파일은 컴파일 대상에 안 들어간다).
- * 그래서 기존 core.proto에 필드를 얹었고, proto 저장소만 포크해서
- * config/west.yml에서 덮어쓴다. ZMK 엔진은 공식 main 그대로다.
- *   Tchelio/zmk-studio-messages: core.proto에 아래 3개 추가
+ * 그래서 기존 core.proto에 필드를 얹고 config/west.yml에서 개인 포크를
+ * 덮어쓴다. ZMK 엔진도 현재는 RPC TX 안정성 수정과 raw position observer를
+ * 위해 Tchelio/zmk를 사용한다.
+ *   Tchelio/zmk-studio-messages: core.proto에 아래 필드 추가
  *     Request.get_active_layers / Response.get_active_layers
  *     Notification.active_layers_changed
+ *     Notification.position_state_changed
  *
  * 전달 형식: 변화량("레이어 3이 켜졌다")이 아니라 매번 활성 레이어 비트마스크
  * 전체를 보낸다. 신호를 한 번 놓쳐도 다음 신호에 저절로 맞춰지므로 수신 측이
@@ -37,6 +39,7 @@
 
 #include <zmk/event_manager.h>
 #include <zmk/events/layer_state_changed.h>
+#include <zmk/events/position_state_changed.h>
 #include <zmk/keymap.h>
 #include <zmk/studio/rpc.h>
 
@@ -104,3 +107,63 @@ static int layer_state_listener(const zmk_event_t *eh) {
 
 ZMK_LISTENER(layer_state_rpc, layer_state_listener);
 ZMK_SUBSCRIPTION(layer_state_rpc, zmk_layer_state_changed);
+
+/*
+ * Raw physical-key state for the overlay.
+ *
+ * This is intentionally the strong implementation of the weak observer in
+ * zmk_position_state_changed. A normal ZMK event subscription is not reliable
+ * here because combo/hold-tap can CAPTURE position events before a later
+ * module listener runs. The observer is called by raise_zmk_position_state_changed()
+ * before event dispatch, so every physical press/release is seen exactly once.
+ */
+struct position_rpc_event {
+    uint32_t position;
+    uint8_t source;
+    bool pressed;
+};
+
+/*
+ * Do not encode/send RPC from the key-processing path. A selected transport
+ * can briefly stop draining its TX ring (especially around USB/BLE endpoint
+ * changes); even with the bounded retry in the ZMK fork, doing that work here
+ * would turn transport backpressure into keyboard latency.
+ */
+K_MSGQ_DEFINE(position_rpc_msgq, sizeof(struct position_rpc_event), 64, 4);
+
+static void position_rpc_work_handler(struct k_work *work) {
+    ARG_UNUSED(work);
+
+    struct position_rpc_event ev;
+    while (k_msgq_get(&position_rpc_msgq, &ev, K_NO_WAIT) == 0) {
+        zmk_core_PositionStateChanged state = zmk_core_PositionStateChanged_init_zero;
+        state.position = ev.position;
+        state.pressed = ev.pressed;
+        state.source = ev.source;
+
+        raise_zmk_studio_rpc_notification((struct zmk_studio_rpc_notification){
+            .notification = ZMK_RPC_NOTIFICATION(core, position_state_changed, state),
+        });
+    }
+}
+
+K_WORK_DEFINE(position_rpc_work, position_rpc_work_handler);
+
+void zmk_position_state_changed_observer(const struct zmk_position_state_changed *ev) {
+    struct position_rpc_event queued = {
+        .position = ev->position,
+        .source = ev->source,
+        .pressed = ev->state,
+    };
+
+    if (k_msgq_put(&position_rpc_msgq, &queued, K_NO_WAIT) != 0) {
+        LOG_WRN("position RPC queue full; dropping position %u %s", ev->position,
+                ev->state ? "press" : "release");
+        return;
+    }
+
+    /* Already queued/running is fine: the handler drains the message queue,
+     * and Zephyr may queue a running work item for another pass.
+     */
+    (void)k_work_submit(&position_rpc_work);
+}
